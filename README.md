@@ -169,7 +169,8 @@ $F_{max}=max\{F'_p, p{\in}N(V)\}$
 <div align=center>
 <img src="https://pic1.zhimg.com/v2-8dc76710bd09c25d5c8196d6aff56fec_r.jpg">
 </div>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PointNet的代码和结构的图没有差别，主要就是根据Fc去映射特征并且使用最大池化+Fc得到一个[batchsize, kxk]的特征，然后再去+eye(k)最后reshape →[batchsize, k, k]作为一个类似于旋转的刻画矩阵
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PointNet的代码和结构的图没有差别，主要就是根据Fc去映射特征并且使用最大池化+Fc得到一个[batchsize, kxk]的特征，然后再去+eye(k)最后reshape →[batchsize, k, k]**作为一个类似于旋转的变换对齐矩阵，矩阵来自数据自身**
 
 <div align=center>
 <img src="https://pic3.zhimg.com/80/v2-e4ca28cbcd3a802aff9074bace47e056_720w.jpg">
@@ -205,5 +206,166 @@ better accuracy for large-scale point cloud segmentation(**体素聚合依靠稀
 footprint. For instance, it can take more than **one million points** in training
 and **use only one GPU** to achieve state-of-the-art accuracy（**内存的高效**）.
 
+## 2021.08.25
+### [斯坦福大学在读博士生祁芮中台：点云上的深度学习及其在三维场景理解中的应用](https://www.bilibili.com/video/BV1As411377S)
 
+#### [祁芮中台个人主页](https://web.stanford.edu/~rqi/)
+#### 三维数据深度学习和图像的区别
+1. 三维数据本身具有复杂性，图像可以简单的RGB数组
+2. 三维数据可以表示为点云、Mesh（计算机图形学，适合渲染建模）、Voxel（体素）、MultiView（RGB-D）
+#### 点云数据非常适合三维表示
+1. 传感器最原始的数据，表达简单，非常适合端到端的学习
+2. Mesh需要选择大小、多边形
+3. 体素需要确定分辨率
+4. 图像需要角度，一个视角，表达不全面
+
+#### 三维卷积
+1. 计算代码很大，$O(N^3)$
+2. 体素量化有误差
+3. 如果分辨率很大，那么很多都是空白的
+
+#### 点云投影
+1. 损失3D的信息
+2. 决定投影的角度
+
+#### 从点云手工设计特征
+1. 手工的特征限制了特征的表示
+
+#### 点云数据表示的特征
+1. 无序性，置换不变性&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(**使用对称函数解决**，MeanPooling、MaxPooling)
+
+
+#### 为什么要升维
+1. 最初的最大池化可能只能取得边界的信息，平均池化可能只能取得中心的
+2. 先升维，这样子得到的信息是冗余的空间，这样综合起来就可以避免信息的丢失
+3. 实验中表明，最大池化是一种效果比较好的操作
+
+### PointNet和PointNet++的对比
+1. PointNet要么是对单个点在操作，要么是针对全局的点操作，没有一个局部的概念（local context），缺少一个平移不变性的特征
+2. 针对这些问题，提出了PointNet++，**在局部使用PointNet**
+#### PointNet++
+1. 选取小区域&nbsp;&nbsp;&nbsp;&nbsp;平移到局部坐标系&nbsp;&nbsp;&nbsp;&nbsp;得到一个新的点Point(X,Y,F)，其中F是小区域的几何形状信息
+2. 重复操作，得到一个新的点的集合（点一般会变少），得到高维的特征，有点类似于卷积神经网络的操作
+3. 再通过upsample的方法恢复（3D插值）
+
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PointNet++的局部操作会被采样率的**不均匀影响**，应该要学习**不同区域大小**的特征去得到一个鲁棒的模型
+
+## [点云处理](https://www.bilibili.com/video/BV1QK4y1K7DD?from=search&seid=10387690078728982745)——声音有点糊，但是值得好好听一下里面的笼统的介绍
+### 点云处理方法
+* 点云滤波(filtering)<br>
+    * 检测和移除点云中的噪声或不感兴趣的点
+* 分类
+    * 基于统计信息(statisca I-based)
+    * 基于领域(ne ighbor -based)
+    * 基于投影(project ion-based)
+    * 基于信号处理(singal process ing based)
+    * 基于偏微分方程(PDEs-based)
+    * 其他方法: voxel grid fit ler ing，quadtree-based, etc.
+* 常用方法
+    * 基于体素(voxel grid)
+    * 移动平均最小二乘(Moving Least Squares)
+    * 点云匹配(point cloud registration): .
+    * 估计两帧或者多帧点云之间的rigid body transformation信息，将所有帧的点云配准在同一个坐标系。
+* 分类
+    * 初/粗匹配:适用于初始位姿差别大的两帧点云
+    * 精匹配:优化两帧点云之间的变换
+    * 全局匹配:通常指优化序列点云匹配的误差,如激光SLAM，两帧之间匹配，全局匹配
+* 常用方法
+    * 基于Iterative Closest Point (ICP)的方法
+    * 基于特征的匹配方法
+    * 深度学习匹配方法
+
+## [End-to-End Multi-View Fusion for 3D Object Detection in LiDAR Point Clouds](https://arxiv.org/abs/1910.06528)
+
+### [Github](https://github.com/AndyYuan96/End-to-End-Multi-View-Fusion-for-3D-Object-Detection-in-LiDAR-Point-Clouds)
+
+### [解读](https://blog.csdn.net/qq_38650028/article/details/105323922)
+* 算法能够利用相同LiDAR的点云数据中的鸟瞰图和透视图之间的互补信息
+* 动态体素化消除了对每一个体素采样预定义点数的需要，这意味着每一个点可以被模型使用，从而减少信息损失
+<div align=center>
+<img src="https://img-blog.csdnimg.cn/20200405110946550.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM4NjUwMDI4,size_16,color_FFFFFF,t_70">
+</div>
+
+``` c
+//#define DEBUG
+const int THREADS_PER_BLOCK_NMS = sizeof(unsigned long long) * 8; 
+const float EPS = 1e-8;
+struct Point {
+// 优秀的工程师都有自己的cuda自定义包能力,
+// 的确有时间可以学习一下
+```
+
+```python
+from spconv.utils import VoxelGenerator
+self.voxel_generator = VoxelGenerator(
+    voxel_size=voxel_generator_cfg.VOXEL_SIZE,
+    point_cloud_range=cfg.DATA_CONFIG.POINT_CLOUD_RANGE,
+    max_num_points=voxel_generator_cfg.MAX_POINTS_PER_VOXEL
+)
+'''
+用到了spconv自带的体素构造器,但是应该基本的
+思路和python写的是一样的,所以没什么必要调用
+'''
+```
+
+## [TORNADO-Net: mulTiview tOtal vaRiatioN semAntic segmentation with Diamond inceptiOn module](https://arxiv.org/abs/2008.10544)
+
+Github（代码未开源）
+
+### Introduction
+Semantic segmentation of point clouds is a key component of scene understanding for robotics and autonomous driving. In this paper, we introduce TORNADO-Net - a neural network for 3D LiDAR point cloud semantic segmentation. We incorporate **a multi-view (bird-eye and range) projection（使用多视角：鸟瞰图+投影图）** feature extraction with an encoder-decoder ResNet architecture with a novel diamond context block. Current projection-based methods do not take into account that **neighboring points usually belong to the same class**. To better utilize this local neighbourhood information and reduce noisy predictions, we introduce a combination of Total Variation,**Lovasz-Softmax, and Weighted Cross-Entropy losses（言下之意是Lovasz-Softmax Loss可以避免邻点属于一个类的问题）**. We also take advantage of the fact that the LiDAR data encompasses 360 degrees field of view and uses circular padding. We demonstrate state-of-the-art results on the SemanticKITTI dataset and also provide thorough quantitative evaluations and ablation results.
+
+The voxel size of the PPL block was set to $[0.3125,0.3125,10]$ leading to a voxel grid of $[512×512]$.We used $C=64$,&nbsp;$C_P=7$,&nbsp;$C_D=192$ for filter sizes, and the height and width of the projected image were set to $H=64$, &nbsp;$W=2048$,
+except for the high-res model where $H=128$
+
+<div align=center>
+<img src="https://d3i71xaburhd42.cloudfront.net/63e111924817bbda70ac80c03d7646574d027e6a/3-Figure1-1.png">
+</div>
+<img src="https://d3i71xaburhd42.cloudfront.net/63e111924817bbda70ac80c03d7646574d027e6a/3-Figure2-1.png">
+</div>
+
+### [TVLoss](https://blog.csdn.net/yexiaogu1104/article/details/88395475)
+
+```python
+"""
+TVLoss2D示例代码
+"""
+import torch
+import torch.nn as nn
+from torch.autograd import Variable
+
+class TVLoss(nn.Module):
+    def __init__(self,TVLoss_weight=1):
+        super(TVLoss,self).__init__()
+        self.TVLoss_weight = TVLoss_weight
+
+    def forward(self,x):
+        batch_size = x.size()[0]
+        h_x = x.size()[2]
+        w_x = x.size()[3]
+        count_h = self._tensor_size(x[:,:,1:,:])
+        count_w = self._tensor_size(x[:,:,:,1:])
+        h_tv = torch.pow((x[:,:,1:,:]-x[:,:,:h_x-1,:]),2).sum()
+        w_tv = torch.pow((x[:,:,:,1:]-x[:,:,:,:w_x-1]),2).sum()
+        return self.TVLoss_weight*2*(h_tv/count_h+w_tv/count_w)/batch_size
+
+    def _tensor_size(self,t):
+        return t.size()[1]*t.size()[2]*t.size()[3]
+
+def main():
+    # x = Variable(torch.FloatTensor([[[1,2],[2,3]],[[1,2],[2,3]]]).view(1,2,2,2), requires_grad=True)
+    # x = Variable(torch.FloatTensor([[[3,1],[4,3]],[[3,1],[4,3]]]).view(1,2,2,2), requires_grad=True)
+    # x = Variable(torch.FloatTensor([[[1,1,1], [2,2,2],[3,3,3]],[[1,1,1], [2,2,2],[3,3,3]]]).view(1, 2, 3, 3), requires_grad=True)
+    x = Variable(torch.FloatTensor([[[1, 2, 3], [2, 3, 4], [3, 4, 5]], [[1, 2, 3], [2, 3, 4], [3, 4, 5]]]).view(1, 2, 3, 3),requires_grad=True)
+    addition = TVLoss()
+    z = addition(x)
+    print(x)
+    print(z.data)
+    z.backward()
+    print(x.grad)
+    
+if __name__ == '__main__':
+    main()
+```
 </font>
