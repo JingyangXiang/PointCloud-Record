@@ -322,6 +322,7 @@ except for the high-res model where $H=128$
 <div align=center>
 <img src="https://d3i71xaburhd42.cloudfront.net/63e111924817bbda70ac80c03d7646574d027e6a/3-Figure1-1.png">
 </div>
+<div align=center>
 <img src="https://d3i71xaburhd42.cloudfront.net/63e111924817bbda70ac80c03d7646574d027e6a/3-Figure2-1.png">
 </div>
 
@@ -368,4 +369,90 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+### [SqueezeSegV3: Spatially-Adaptive Convolution for Efficient Point-Cloud Segmentation](https://arxiv.org/abs/2004.01803)
+[Github](https://github.com/chenfengxu714/SqueezeSegV3)
+
+#### CNN模型的基本架构
+<div align=center>
+<img src="https://github.com/chenfengxu714/SqueezeSegV3/raw/master/figure/framework.png">
+</div>
+
+#### 声称这种偏移的分布会影响CNN的性能
+<div align=center>
+<img src="https://i.loli.net/2021/08/26/7p9TO6nVNwSPAmk.png">
+</div>
+
+
+[postprocess](https://github.com/chenfengxu714/SqueezeSegV3/tree/master/src/tasks/semantic/postproc)
+```python
+"""
+    SqueezeSegV3、SalsaNext的代码基本是一个模板
+    里面有KNN、CRF的代码，可以用来做postprocrss
+"""
+```
+
+### [RangeNet++: Fast and Accurate LiDAR Semantic Segmentation](http://www.ipb.uni-bonn.de/wp-content/papercite-data/pdf/milioto2019iros.pdf)
+[Github](https://github.com/PRBonn/lidar-bonnetal) **跟SalsaNext也是一套代码**
+
+<div align=center>
+<img src="https://img-blog.csdnimg.cn/20191213155510709.png">
+</div>
+
+#### 算法，具体可以参见[代码](https://github.com/PRBonn/lidar-bonnetal/blob/master/train/tasks/semantic/postproc/KNN.py)
+
+```python
+class KNN(nn.Module):
+  def __init__(self, params, nclasses):
+    super().__init__()
+    ...
+
+  def forward(
+        self, 
+        proj_range, 
+        unproj_range, 
+        proj_argmax, 
+        px, 
+        py
+    ):
+    ''' Warning! Only works for un-batched pointclouds.
+        If they come batched we need to iterate over the batch dimension or do
+        something REALLY smart to handle unaligned number of points in memory
+    '''
+    return knn_argmax_out
+"""
+（i）S是搜索窗口的大小；
+（ii）k是最近邻的数量；
+（iii）截止值是k的最大允许范围差；
+（iv）高斯逆数。 
+"""
+```
+
+### [Cylindrical and Asymmetrical 3D Convolution Networks for LiDAR Segmentation](https://arxiv.org/pdf/2011.10033v1.pdf)
+[解读](https://zhuanlan.zhihu.com/p/393353974)
+
+[Github](https://github.com/xinge008/Cylinder3D)
+
+#### 为了解决数据分布不均匀的问题，使用圆柱形切分
+<div align=center>
+<img src="https://github.com/xinge008/Cylinder3D/raw/master/img/pipeline.png">
+</div>
+
+#### 模型基本的结构
+<div align=center>
+<img src="https://pic2.zhimg.com/80/v2-bca166942166cccd1d279f8f3f39be79_1440w.jpg">
+</div>
+
+
+#### Asymmetric Residual Block
+<div align=center>
+<img src="https://pic2.zhimg.com/80/v2-22a0bbf129543b48d319fdb5cb0d2fa1_1440w.jpg"
+width="300" height="200">
+</div>
+
+#### Dimension-decomposition based Context Modeling
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在论文中，high-rank context可以分为三个维度，即**高度（height）、宽度（width）和深度（depth）**，其中所有三个片段都是低秩的。然后我们使用这些片段建立完整的high-rank context。这种分解-聚合策略（decomposite-aggregate strategy）从不同的角度解决了低秩约束下的高秩问题。三个rank-1的核（**3×1×1**，**1×3×1**和**1×1×3**）用于在所有三维中生成这些低秩编码。然后，Sigmoid函数对卷积结果进行调整，并为每个维度生成权重，其中基于不同视图的rank-1的张量来挖掘共生的上下文信息。将所有三个低秩激活聚合起来，得到表示完整的上下文特征的总和.
+<div align=center>
+<img src="https://pic4.zhimg.com/80/v2-7b3c5e6a814b4d2996cb24585f9872db_1440w.jpg"  width="300" height="200">
+</div>
 </font>
