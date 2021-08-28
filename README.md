@@ -455,4 +455,64 @@ width="300" height="200">
 <div align=center>
 <img src="https://pic4.zhimg.com/80/v2-7b3c5e6a814b4d2996cb24585f9872db_1440w.jpg"  width="300" height="200">
 </div>
+
+### [KPConv: Flexible and Deformable Convolution for Point Clouds](https://arxiv.org/pdf/1904.08889.pdf)
+[Github](https://github.com/HuguesTHOMAS/KPConv)**这个团队的代码能力真的太可以了**<br>
+[解读](https://zhuanlan.zhihu.com/p/83234923)
+
+### [3D-MiniNet: Learning a 2D Representation from Point Clouds for Fast and Efficient 3D LIDAR Semantic Segmentation](https://arxiv.org/pdf/2002.10893.pdf)
+[Github](https://github.com/Shathe/3D-MiniNet)
+**用纯投影方法的似乎用的都是一个代码模板**<br>
+[解读](https://zhuanlan.zhihu.com/p/122682561)
+<div align=center>
+<img src="https://pic4.zhimg.com/80/v2-ac954b8d477a9794841383c7bc139c8b_1440w.jpg">
+</div>
+
+### [SalsaNext: Fast, Uncertainty-aware Semantic Segmentation of LiDAR Point Clouds for Autonomous Driving](https://arxiv.org/abs/2003.03653)
+[Github](https://github.com/Halmstad-University/SalsaNext)
+
+
+### [KPRNet: Improving projection-based LiDAR semantic segmentation](https://arxiv.org/pdf/2007.12668v2.pdf)
+
+[Gihutb](https://github.com/DeyvidKochanov-TomTom/kprnet)
+
+**用到了语义分割的数据增强方法，比如scale+crop**
+
+### [Pillar-based Object Detection for Autonomous Driving](https://arxiv.org/abs/2007.10323)
+
+[Github](https://github.com/WangYueFt/pillar-od)
+
+TensorFlow里面tf.math.unsorted_segment_max的功能和torch_scatter.scatter_max是一样的,其实也可以用tf来构造项目
+
+### [RPVNet: A Deep and Efficient Range-Point-Voxel Fusion Network for LiDAR Point Cloud Segmentation](https://arxiv.org/abs/2103.12978)
+
+**代码未开源**<br>
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;文章提供了一种数据增强的实用方法，可以作为点云在不同的voxel和range-view情况下特征嵌入的一种方法，不过还是得看**spconv**是否支持，下采样过程中的确有些东西很难控制，特征融合需要很细节的单步调试
+
+<div align=center>
+<img src="figure/RPVNet-P1.PNG" width="300">
+</div>
+
+All three views have shortcomings. (a) point-based: the points are irregular, which makes **finding the neighbors of a point inefficient**. (b) voxel-based: voxelization brings **quantization loss**, and the computation grows cubicly when resolution increases. (c) range-based: range-image **distorts physical dimensions** because of spherical projection
+
+<div align=center>
+<img src="figure/RPVNet-P3.PNG">
+</div>
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;除了输入的数据，猜想**V2P、P2V、R2P、P2R**基本都是一个坐标层面的索引，由于point的操作是比较控制上采样的，应该是可以以grid_size//2，grid_size//4等来对low-resolution的图片进行一个feature-embedding，然后进行分割，从整体来看应该不是很难
+
+<div align=center>
+<img src="figure/RPVNet-P4.PNG">
+</div>
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;模型的结构，理解来看应该是取得某个点在**体素和投影的特征(unproject)**，然后使用MLP+softmax来做一个注意力的机制，然后做一个特征融合，**再project回去**，做一个特征的融合(GFM,Gated Fusion Module,门控注意力机制)
+
+#### Instance CutMix
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Inspired by past mixbased approaches, we proposed the **instance mix** to cope with the imbalanced class problem for lidar semantic segmentation. Empirically, the network can predict less frequent objects more accurately if such objects are allowed to repeated in the scene. Motivated by this discover, we extract the **rare-class object instances(eg.bicycles, vehicles)** from each frame of the training set into a mini sample library. During the training, the samples are randomly selected from the mini-sample pool equally by category. Then, random scaling and rotation will be acted on these samples. To ensure a close fit with reality, we randomly placed the objects above the ground-class points. Finally, some new rare objects from other scenes are “pasted” to the current training scenes, for simulating objects in various environments.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Note that, our result uses the instance CutMix augmentation, and voxel resolution is set to 0.05m, **but without extra tricks**
+
+
+
 </font>
