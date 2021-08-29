@@ -619,5 +619,35 @@ def extract_coord_features(t):
 
 ### [点云的基本几何计算](https://blog.csdn.net/weixin_34233421/article/details/94046078)
 
+### [(AF)2-S3Net: Attentive Feature Fusion with Adaptive Feature Selection for Sparse Semantic Segmentation Network](https://arxiv.org/abs/2102.04530)
+
+<div align=center>
+<img src="figure/AF2-S3Net-F2.PNG">
+</div>
+
+模型结构图，更加直观的感觉是使用不同尺度的Conv层然后做了一个注意力，由于代码没有开源，很多细节的地方只能大概理解
+
+```python
+"""
+geo-aware anisotrophic loss
+开源的代码部分并没有这个loss的代码，但是可以通过pad直接去弄
+"""
+```
+
+$$
+L_{geo}(y,\hat{y})=-\frac{1}{N}\sum\limits_{i,j,k}\sum\limits_{c=1}\limits^C\frac{M_{LGA}}{\mathit\Psi}y_{ijk,c}log\hat{y}_{ijk,c}
+$$
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;大概是意思就是单个点和身边的点去做一个异或操作，核心是为了促使一个点和身边的点尽量的相近
+
+$$
+M_{LAG}=\sum\limits_{\mathit{\Psi}=1}\limits^{\psi}(C_p⊕C_{q_{\mathit\psi}})
+$$
+
+$\mathit\psi$是归一化系数，大概也就是除以格子的数量吧
+
+
+
+
 
 </font>
