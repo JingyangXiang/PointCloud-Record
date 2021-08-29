@@ -251,8 +251,10 @@ and **use only one GPU** to achieve state-of-the-art accuracy（**内存的高�
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PointNet++的局部操作会被采样率的**不均匀影响**，应该要学习**不同区域大小**的特征去得到一个鲁棒的模型
 
-## [点云处理](https://www.bilibili.com/video/BV1QK4y1K7DD?from=search&seid=10387690078728982745)——声音有点糊，但是值得好好听一下里面的笼统的介绍
-### 点云处理方法
+## 2021.08.26
+
+### [点云处理](https://www.bilibili.com/video/BV1QK4y1K7DD?from=search&seid=10387690078728982745)——声音有点糊，但是值得好好听一下里面的笼统的介绍
+#### 点云处理方法
 * 点云滤波(filtering)<br>
     * 检测和移除点云中的噪声或不感兴趣的点
 * 分类
@@ -456,6 +458,8 @@ width="300" height="200">
 <img src="https://pic4.zhimg.com/80/v2-7b3c5e6a814b4d2996cb24585f9872db_1440w.jpg"  width="300" height="200">
 </div>
 
+## 2021.08.27
+
 ### [KPConv: Flexible and Deformable Convolution for Point Clouds](https://arxiv.org/pdf/1904.08889.pdf)
 [Github](https://github.com/HuguesTHOMAS/KPConv)**这个团队的代码能力真的太可以了**<br>
 [解读](https://zhuanlan.zhihu.com/p/83234923)
@@ -477,6 +481,8 @@ width="300" height="200">
 [Gihutb](https://github.com/DeyvidKochanov-TomTom/kprnet)
 
 **用到了语义分割的数据增强方法，比如scale+crop**
+
+## 2021.08.28
 
 ### [Pillar-based Object Detection for Autonomous Driving](https://arxiv.org/abs/2007.10323)
 
@@ -513,6 +519,105 @@ All three views have shortcomings. (a) point-based: the points are irregular, wh
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Inspired by past mixbased approaches, we proposed the **instance mix** to cope with the imbalanced class problem for lidar semantic segmentation. Empirically, the network can predict less frequent objects more accurately if such objects are allowed to repeated in the scene. Motivated by this discover, we extract the **rare-class object instances(eg.bicycles, vehicles)** from each frame of the training set into a mini sample library. During the training, the samples are randomly selected from the mini-sample pool equally by category. Then, random scaling and rotation will be acted on these samples. To ensure a close fit with reality, we randomly placed the objects above the ground-class points. Finally, some new rare objects from other scenes are “pasted” to the current training scenes, for simulating objects in various environments.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Note that, our result uses the instance CutMix augmentation, and voxel resolution is set to 0.05m, **but without extra tricks**
 
+#### Network Setup
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Both range and voxel branch are Unet-like architecture **with a stem, four down-sampling and four up-sampling stages, and the dimensions of these 9 stages are 32, 64, 128, 256, 256, 128, 128, 64, 32(dimension比较低，估计这个样子可以保持比较大的batchsize)**,respectively. For range branch, the input **range-image size is 64 × 2048** on SemanticKITTI dataset, and 32 × 2048 as initial size for nuScenes dataset, then resized to 64×2048 to keep the same as SemanticKITTI. As for voxel branch, the **voxel resolution is 0.05m** for the experiments. For point branch, it consists of four **per-point MLPs with dimensions: 32, 256, 128, 32.**
+
+#### Training and Inference Details
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;We employ the **commonly used cross-entropy（估计用了instance cutmix数据增强，因此就使用simple-cross-entopy了** as loss in training. Our RPVNet is trained from scratch in an end-to-end manner with the ADAM or SGD optimizer. For the SemanticKITTI dataset, the model uploaded to the leaderboard was trained with SGD, **batch size 12（轻量级的网络换来的较可观的batchsize）**, **learning rate 0.24 for 60 epochs（这个数据集似乎就是不需要跑特别多的epochs） on 2 GPUs**, which is kept the same as SPVCNN for fair comparison. This setup takes around 100 hours on 2 Tesla V100 GPUs
+
+### [PolarNet: An Improved Grid Representation for Online LiDAR Point Clouds Semantic Segmentation](https://arxiv.org/pdf/2003.14032.pdf)
+
+[Github](https://github.com/edwardzhou130/PolarSeg)
+
+可以用来学习一下BEV具体是怎么操作的
+
+<div align=center>
+<img src="figure/PolarNet-F1.PNG">
+</div>
+
+```python
+out_data_dim = [len(pt_fea), self.grid_size[0], self.grid_size[1], self.pt_fea_dim]
+out_data = torch.zeros(out_data_dim, dtype=torch.float32).to(cur_dev)
+out_data[unq[:, 0], unq[:, 1], unq[:, 2], :] = processed_pooled_data
+out_data = out_data.permute(0, 3, 1, 2)
+"""
+    参考代码很简单的就可以看明白,其实BEV类似于Point2Voxel,都是一个索引的操作
+    区别在于Voxel是SparseTensor&有XYZ三轴维度,BEV是torch.Tensor&只需要XY
+"""
+```
+
+## 2021.08.29
+### [AMVNet: Assertion-based Multi-View Fusion Network for LiDAR Semantic Segmentation](https://arxiv.org/abs/2012.04934)
+
+<div align=center>
+<img src="figure/AMVNet-F1.PNG" height="300" width="400">
+</div>
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;主要是阐述不同的视图有不同的作用，需要一个融合
+
+<div align=center>
+<img src="figure/AMVNet-F2.PNG">
+</div>
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;其中（b）就是对Assertion的阐述，不同的分支预测，如果两个分支预测的结果相同，那么代表结果可信；如果两个分支的结果不同，那么就需要重新对特征进行衡量
+
+<div align=center>
+<img src="figure/AMVNet-F3.PNG">
+</div>
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;感觉是用来衡量一个物体的形状分布之类的，主要的难度还是在于坐标给定的物体并不是给定物体的坐标，更加深层的应该是在提取物体的轮廓
+
+
+<div align=center>
+<img src="figure/AMVNet-F4.PNG">
+</div>
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KD-Tree是怎么解决临近点搜索这种复杂度爆炸高的方法的<br>
+#### KdTree背景知识
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KdTree(也称k-d树)是一种用来分割k维数据空间的高维空间索引结构，其本质就是一个带约束的二叉搜索树，基于KdTree的近似查询的算法可以快速而准确地找到查询点的近邻，经常应用于特征点匹配中的相似性算法。
+
+### [Sparse Single Sweep LiDAR Point Cloud Segmentation via Learning Contextual Shape Priors from Scene Completion](https://arxiv.org/abs/2012.03762)
+
+[Gihub](https://github.com/yanx27/JS3C-Net)<br>
+**Voxel+Point**
+
+<div align=center>
+<img src="figure/JS3C-Net-F2.PNG">
+</div>
+
+从图上来看，整体就是核心模型是一个UNet，然后辅助了一些Point-Voxel的分支
+
+<div align=center>
+<img src="figure/JS3C-Net-F3.PNG">
+</div>
+
+看图直观的感觉是使用了PixelShuffle来作为上采样的方式，（b）相当于用KNN做一个几何形状的refine，其实有点类似于一个点云补全（有做一个先验的预测的影子）
+
+<div align=center>
+<img src="figure/JS3C-Net-F1.PNG">
+</div>
+
+从描述来看，似乎要使用多帧的信息来做一个特征的具象化，避免一个物体缺失的问题，具体得参照代码来看
+
+```python
+def extract_coord_features(t):
+    device = t.device
+    channels = int(t.shape[1])
+    coords = torch.sum(torch.abs(t), dim=1).nonzero().type(torch.int32).to(device)
+    features = t.permute(0, 2, 3, 4, 1).reshape(-1, channels)
+    features = features[torch.sum(torch.abs(features), dim=1).nonzero(), :]
+    features = features.squeeze(1)
+    assert len(coords) == len(features)
+
+    return coords, features
+"""
+    用来做3D的融合非常合适，这样就可以避免shape不同的问题了    
+"""
+```
+
+### [点云的基本几何计算](https://blog.csdn.net/weixin_34233421/article/details/94046078)
 
 
 </font>
